@@ -65,11 +65,11 @@ class DQNAgent(nn.Module):
             self.epsilon *= self.epsilon_decay
 
     def save_model(self, file_name):
-        torch.save(self.model.state_dict(), file_name)  # 保存模型的参数
+        torch.save(self.model.state_dict(), file_name)
 
     def load_model(self, file_name):
         if os.path.exists(file_name):
-            self.model.load_state_dict(torch.load(file_name))  # 加载模型的参数
+            self.model.load_state_dict(torch.load(file_name))
             print(f"Model loaded from {file_name}")
         else:
             print(f"No model found at {file_name}, starting from scratch.")
@@ -79,7 +79,7 @@ class DQNAgent(nn.Module):
 class Env:
     def __init__(self, hell):
         self.hell = hell  # 创建游戏实例
-        self.state_size = 12  # 根据状态特征数量调整
+        self.state_size = 18 # 根据状态特征数量调整
         self.action_size = 3  # 左, 右, 不动
         self.preview_barrier_num = 0;
 
@@ -163,8 +163,8 @@ class Env:
         state.append(self.hell.body.y)  # 玩家 y 坐标
         state.append(len(self.hell.barrier))  # 障碍物数量
 
-        # 记录最多 2 个障碍物的信息
-        max_barriers = 3
+        # 记录最多 max_barriers 个障碍物的信息
+        max_barriers = 5
         for i in range(max_barriers):
             if i < len(self.hell.barrier):
                 ba = self.hell.barrier[i]

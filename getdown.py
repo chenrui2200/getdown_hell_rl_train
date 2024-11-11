@@ -37,6 +37,7 @@ class Game(object):
         #if training_mode:
         #    os.environ["SDL_VIDEODRIVER"] = "dummy"
 
+        # self.screen = pygame.display.set_mode(size, 0, 32)
         self.screen = pygame.display.set_mode(size, 0, 32)
         pygame.display.set_caption(title)
         self.keys = {}
