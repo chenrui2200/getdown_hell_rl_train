@@ -34,8 +34,8 @@ class Game(object):
     def __init__(self, title, size, fps=30, training_mode=False):
         self.size = size
         pygame.init()
-        if training_mode:
-            os.environ["SDL_VIDEODRIVER"] = "dummy"
+        #if training_mode:
+        #    os.environ["SDL_VIDEODRIVER"] = "dummy"
 
         self.screen = pygame.display.set_mode(size, 0, 32)
         pygame.display.set_caption(title)
