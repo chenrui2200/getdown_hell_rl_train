@@ -79,7 +79,7 @@ class DQNAgent(nn.Module):
 class Env:
     def __init__(self, hell):
         self.hell = hell  # 创建游戏实例
-        self.state_size = 18  # 根据状态特征数量调整
+        self.state_size = 12  # 根据状态特征数量调整
         self.action_size = 3  # 左, 右, 不动
         self.preview_barrier_num = 0;
 
@@ -118,14 +118,14 @@ class Env:
         # 当物体成功离开本级台阶或达到下面某级台阶时，可以提供额外奖励。
         if matching_barriers:
             left_distance = body.x - matching_barriers[0].rect.x
-            right_distance = matching_barriers[0].rect.x + matching_barriers[0].rect.width - body.x
+            right_distance = matching_barriers[0].rect.x + matching_barriers[0].rect.width - body.x - body.h
             # 说明在台面上移动
             if left_distance < right_distance and action == 0:
-                reward += 0.1
+                reward += 1
             elif left_distance > right_distance and action == 1:
-                reward += 0.1
+                reward += 1
             else:
-                reward -= 0.1
+                reward -= 2
 
         thres_hold = 100
         matching_barriers = [ba for ba in barrier
@@ -154,7 +154,7 @@ class Env:
             reward += 2
 
         # 为每个时间步骤提供小的正奖励，以鼓励持续进行游戏。
-        reward += 0.1
+        reward += 2
         return reward
 
     def get_state(self):
@@ -164,7 +164,7 @@ class Env:
         state.append(len(self.hell.barrier))  # 障碍物数量
 
         # 记录最多 2 个障碍物的信息
-        max_barriers = 5
+        max_barriers = 3
         for i in range(max_barriers):
             if i < len(self.hell.barrier):
                 ba = self.hell.barrier[i]
