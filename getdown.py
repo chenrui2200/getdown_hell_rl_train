@@ -193,7 +193,7 @@ class Hell(Game):
     def show_end(self):
         self.draw(0, end=True)
         self.end = True
-        self.reset()
+        #self.reset()
 
     def move_man(self, dire):
         if dire == 0:

@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 from matplotlib import pyplot as plt
 
-from getdown import Hell, SCREEN_WIDTH, SCREEN_HEIGHT
+from getdown import Hell, SCREEN_WIDTH, SCREEN_HEIGHT, DEADLY
 
 
 class DQNAgent(nn.Module):
@@ -133,7 +133,7 @@ class Env:
                                      ba.rect.x + ba.rect.width)]
 
         # 对于不良行为，给予负奖励。例如，下方快碰到带刺的障碍时
-        if matching_barriers and matching_barriers[0].type == 2:
+        if matching_barriers and matching_barriers[0].type == DEADLY:
             reward -= 5
         else:
             reward += 3
@@ -144,6 +144,14 @@ class Env:
             reward += 1
         else:
             reward -= 0.5
+
+        # 增加下落时朝向障碍物的奖励
+        falling_towards_barrier = any(
+            ba.rect.x < body.x < (ba.rect.x + ba.rect.width) and ba.rect.y > body.y
+            for ba in barrier
+        )
+        if falling_towards_barrier:
+            reward += 2
 
         # 为每个时间步骤提供小的正奖励，以鼓励持续进行游戏。
         reward += 0.1
@@ -180,32 +188,38 @@ if __name__ == "__main__":
     agent.load_model(model_path)
 
     total_steps = 0  # 初始化总步数
+    total_game_num = 0
     rewards = []  # 用于记录每个回合的总奖励
 
     try:
+        state = env.reset()
         while True:  # 无限训练
-            state = env.reset()
+
             state = np.reshape(state, [1, env.state_size])
             total_reward = 0  # 每个回合的总奖励
 
-            for time in range(500):
-                action = agent.act(state)
-                next_state, reward, done, _ = env.step(action)
-                reward = reward if not done else -10  # 奖励调整
-                next_state = np.reshape(next_state, [1, env.state_size])
-                agent.remember(state, action, reward, next_state, done)
-                state = next_state
-                total_steps += 1
-                total_reward += reward  # 更新总奖励
+            #for time in range(1000):
+            action = agent.act(state)
+            next_state, reward, done, _ = env.step(action)
+            reward = reward if not done else -10  # 奖励调整
+            next_state = np.reshape(next_state, [1, env.state_size])
+            agent.remember(state, action, reward, next_state, done)
+            state = next_state
+            total_steps += 1
+            total_reward += reward  # 更新总奖励
+            rewards.append(total_reward)
 
-                if done:
-                    rewards.append(total_reward)  # 记录每个回合的总奖励
-                    print(f"Score: {time}, Total Steps: {total_steps}, Epsilon: {agent.epsilon:.2}")
-                    break
+            # rewards 只保留一万条记录
+            if len(rewards) > 10000:
+                rewards.pop(0)
 
-                # 在每1000步时保存模型
-                if total_steps % 1000 == 0:
-                    agent.save_model("getdown_hell_model.h5")  # 保存模型
+            if done:
+                print(f"Total game num: {total_game_num},Total Steps: {total_steps}, total score: {env.hell.score}, Epsilon: {agent.epsilon:.7}")
+                print(f'current step:{total_steps}, save getdown_hell_model.h5')
+                total_steps = 0
+                agent.save_model("getdown_hell_model.h5")  # 保存模型
+                total_game_num += 1
+                env.hell.reset()
 
             if len(agent.memory) > 32:
                 agent.replay(32)
@@ -219,4 +233,4 @@ if __name__ == "__main__":
     plt.title("Training Rewards Over Time")
     plt.xlabel("Episode")
     plt.ylabel("Total Reward")
-    plt.show()
+    plt.savefig("training_rewards.png", format='png')
