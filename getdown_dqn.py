@@ -181,7 +181,7 @@ class Env:
 
 # 训练主循环
 if __name__ == "__main__":
-    env = Env(Hell("是男人就下一百层", (SCREEN_WIDTH, SCREEN_HEIGHT)))  # 初始化强化学习环境
+    env = Env(Hell("是男人就下一百层", (SCREEN_WIDTH, SCREEN_HEIGHT), 60, True))  # 初始化强化学习环境
     agent = DQNAgent(env.state_size, env.action_size)  # 创建 DQN 代理
 
     model_path = "getdown_hell_model.h5"  # 你可以根据需要更改路径

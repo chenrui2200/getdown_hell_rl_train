@@ -3,6 +3,7 @@
 '''
 公众号：Python代码大全
 '''
+import os
 from random import choice, randint
 
 import numpy as np
@@ -30,9 +31,12 @@ CHOICE = [SOLID, SOLID, SOLID, FRAGILE, FRAGILE, BELT_LEFT, BELT_RIGHT, DEADLY]
 
 
 class Game(object):
-    def __init__(self, title, size, fps=30):
+    def __init__(self, title, size, fps=30, training_mode=False):
         self.size = size
         pygame.init()
+        if training_mode:
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
+
         self.screen = pygame.display.set_mode(size, 0, 32)
         pygame.display.set_caption(title)
         self.keys = {}
@@ -163,8 +167,8 @@ class Barrier(object):
 
 
 class Hell(Game):
-    def __init__(self, title, size, fps=60):
-        super(Hell, self).__init__(title, size, fps)
+    def __init__(self, title, size, fps=60, training_mode=False):
+        super(Hell, self).__init__(title, size, fps, training_mode)
         self.last = 6 * SIDE
         self.dire = 0
         self.barrier = [Barrier(self.screen, SOLID)]
