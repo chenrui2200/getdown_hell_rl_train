@@ -252,6 +252,9 @@ class Hell(Game):
         if self.last == 0:
             self.create_barrier()
 
+        # 假设 self.barrier 是一个障碍物对象的列表
+        self.barrier.sort(key=lambda b: b.rect.y, reverse=False)  # 按 rect.y 正序排列
+
         for ba in self.barrier:
             if not ba.rise():
                 if ba.type == FRAGILE and ba.rect.top > 0:

@@ -1,14 +1,12 @@
 import os
+import random
+from collections import deque
 
 import numpy as np
-import random
-
 import pygame
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from collections import deque
-
 from matplotlib import pyplot as plt
 
 from getdown import Hell, SCREEN_WIDTH, SCREEN_HEIGHT
@@ -77,11 +75,10 @@ class DQNAgent(nn.Module):
             print(f"No model found at {file_name}, starting from scratch.")
 
 
-
 # 环境类的示例
 class Env:
     def __init__(self, hell):
-        self.hell = hell # 创建游戏实例
+        self.hell = hell  # 创建游戏实例
         self.state_size = 18  # 根据状态特征数量调整
         self.action_size = 3  # 左, 右, 不动
         self.preview_barrier_num = 0;
@@ -90,7 +87,6 @@ class Env:
         # 重置游戏
         self.hell.reset()
         return self.get_state()
-
 
     def step(self, action):
         if action == 0:  # Move left
@@ -104,28 +100,50 @@ class Env:
 
         # 获取状态、奖励和结束信息
         state = self.get_state()
-        reward = self.compute_reward()
+        reward = self.compute_reward(action)
         done = self.hell.end
 
         return state, reward, done, {}
 
-    def compute_reward(self):
+    def compute_reward(self, action):
         reward = self.hell.score  # 基于当前分数的奖励
+        body = self.hell.body
+        barrier = self.hell.barrier
+
+        target_y = body.y + body.h + 2
+        matching_barriers = [ba for ba in barrier
+                             if ba.rect.y == target_y and ba.rect.x < body.x < (
+                                     ba.rect.x + ba.rect.width)]
 
         # 当物体成功离开本级台阶或达到下面某级台阶时，可以提供额外奖励。
-        if self.agent_leave_barrier():
-            reward += 10  # 避免障碍物
+        if matching_barriers:
+            left_distance = body.x - matching_barriers[0].rect.x
+            right_distance = matching_barriers[0].rect.x + matching_barriers[0].rect.width - body.x
+            # 说明在台面上移动
+            if left_distance < right_distance and action == 0:
+                reward += 0.1
+            elif left_distance > right_distance and action == 1:
+                reward += 0.1
+            else:
+                reward -= 0.1
 
-        # 对于不良行为，给予负奖励。例如，当物体碰到带刺障碍失败时
-        if self.agent_hit_badbarrier():
-            reward -= 10
+        thres_hold = 100
+        matching_barriers = [ba for ba in barrier
+                             if 0 < (ba.rect.y - body.y) < thres_hold and ba.rect.x < body.x < (
+                                     ba.rect.x + ba.rect.width)]
+
+        # 对于不良行为，给予负奖励。例如，下方快碰到带刺的障碍时
+        if matching_barriers and matching_barriers[0].type == 2:
+            reward -= 5
+        else:
+            reward += 3
 
         # 当物体到达新的区域或发现新的障碍物时，可以给予奖励。
         if self.preview_barrier_num < len(self.hell.barrier):
-            self.preview_barrier_num = self.hell.barrier
-            reward += 3
+            self.preview_barrier_num = len(self.hell.barrier)
+            reward += 1
         else:
-            reward -= 1
+            reward -= 0.5
 
         # 为每个时间步骤提供小的正奖励，以鼓励持续进行游戏。
         reward += 0.1
@@ -195,7 +213,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nTraining interrupted. Saving model...")
         agent.save_model("getdown_hell_model.h5")  # 保存模型
-
 
     # 绘制奖励线图
     plt.plot(rewards)
