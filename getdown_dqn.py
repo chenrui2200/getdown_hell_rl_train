@@ -116,7 +116,7 @@ class Env:
                                      ba.rect.x + ba.rect.width)]
 
         # 判断物体所处的位置控制在100~400之间
-        if 100 < body.x < 400:
+        if 100 < body.y < 400:
             reward += 1
         else:
             reward -= 1
