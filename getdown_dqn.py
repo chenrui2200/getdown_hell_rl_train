@@ -28,11 +28,11 @@ class DQNAgent(nn.Module):
 
     def _build_model(self):
         model = nn.Sequential(
-            nn.Linear(self.state_size, 24),  # 第一层
+            nn.Linear(self.state_size, 128),  # 第一层
             nn.ReLU(),
-            nn.Linear(24, 24),  # 第二层
+            nn.Linear(128, 64),  # 第二层
             nn.ReLU(),
-            nn.Linear(24, self.action_size)  # 输出层
+            nn.Linear(64, self.action_size)  # 输出层
         )
         return model
 
@@ -114,6 +114,12 @@ class Env:
         matching_barriers = [ba for ba in barrier
                              if ba.rect.y == target_y and ba.rect.x < body.x < (
                                      ba.rect.x + ba.rect.width)]
+
+        # 判断物体所处的位置控制在100~400之间
+        if 100 < body.x < 400:
+            reward += 1
+        else:
+            reward -= 1
 
         # 当物体成功离开本级台阶或达到下面某级台阶时，可以提供额外奖励。
         if matching_barriers:
