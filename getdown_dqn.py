@@ -157,7 +157,7 @@ class Env:
             for ba in barrier
         )
         if falling_towards_barrier:
-            reward += 2
+            reward += 1
 
         # 为每个时间步骤提供小的正奖励，以鼓励持续进行游戏。
         reward += 2
